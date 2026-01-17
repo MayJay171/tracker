@@ -3,143 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Protocol 75: INTELLECT</title>
+    <title>PROTOCOL 75 // NODE ACTIVE</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%2364ffda%22><path d=%22M21 11V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h6v-2H5V5h14v6h2zm-9 1h9v2h-9v-2zm0 4h9v2h-9v-2zm0 4h9v2h-9v-2z%22/></svg>">
+
     <style>
         :root {
-            --bg-color: #050a10;       /* Deep Navy Black */
-            --card-bg: #0f1c2e;        /* Slightly lighter panel */
-            --text-primary: #cbd5e1;   /* Soft White */
-            --text-secondary: #64748b; /* Muted Grey */
-            --accent: #64ffda;         /* Neon Cyan */
+            --bg-color: #050a10;
+            --card-bg: #0f1c2e;
+            --text-primary: #cbd5e1;
+            --text-secondary: #64748b;
+            --accent: #64ffda;
             --accent-dim: rgba(100, 255, 218, 0.1);
-            --border: 1px solid #1e293b;
+            --fail: #ff5555;
         }
 
         body {
             background-color: var(--bg-color);
             color: var(--text-primary);
-            font-family: 'Courier New', monospace; /* Hacker/Terminal font */
+            font-family: 'Courier New', monospace;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; margin: 0; padding: 20px;
-            box-sizing: border-box;
+            box-sizing: border-box; position: relative;
         }
 
-        /* HEADER SECTION */
-        .header {
-            text-align: center; margin-bottom: 30px; margin-top: 20px;
+        /* --- TOP RIGHT LOGO --- */
+        .top-logo {
+            position: absolute; top: 20px; right: 20px;
+            width: 32px; height: 32px; fill: var(--accent);
+            cursor: pointer; transition: all 0.3s ease;
+            filter: drop-shadow(0 0 5px var(--accent-dim));
         }
-        .sub-title {
-            font-size: 0.7rem; letter-spacing: 4px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 5px;
-        }
-        .main-title {
-            font-size: 3rem; font-weight: 700; color: var(--accent); margin: 0;
-            text-shadow: 0 0 15px rgba(100, 255, 218, 0.2);
-        }
+        .top-logo:hover { transform: rotate(90deg) scale(1.1); filter: drop-shadow(0 0 10px var(--accent)); }
 
-        /* TASK CARDS */
-        .task-list {
-            width: 100%; max-width: 500px; list-style: none; padding: 0;
-        }
-
-        .task-card {
-            background: var(--card-bg);
-            margin-bottom: 16px;
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid transparent; /* Invisible border unless hovered */
-            display: flex; align-items: center; justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .task-card:hover {
-            border-color: var(--text-secondary);
-            transform: translateY(-2px);
-            background: #13233a;
-        }
-
-        /* COMPLETED STATE */
-        .task-card.completed {
-            background: var(--accent-dim);
-            border-color: var(--accent);
-        }
-
-        .left-section { display: flex; align-items: center; gap: 15px; }
+        /* --- MAIN VIEW --- */
+        #mainView { width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; }
         
-        /* ICONS */
+        .header { text-align: center; margin-bottom: 30px; margin-top: 40px; }
+        .sub-title { font-size: 0.7rem; letter-spacing: 4px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; }
+        .main-title { font-size: 3.5rem; font-weight: 700; color: #e2e8f0; margin: 0; font-family: sans-serif; text-shadow: 0 0 15px rgba(100,255,218,0.1); }
+
+        .task-list { width: 100%; list-style: none; padding: 0; }
+        .task-card {
+            background: var(--card-bg); margin-bottom: 12px; padding: 18px 22px;
+            border-radius: 12px; display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; transition: all 0.2s ease;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .task-card:hover { transform: translateY(-2px); background: #13233a; border-color: var(--text-secondary); }
+        .task-card.completed { background: var(--accent-dim); border-color: var(--accent); }
+        .left-section { display: flex; align-items: center; gap: 15px; }
         .icon { width: 20px; height: 20px; fill: var(--text-secondary); transition: fill 0.3s; }
         .task-card.completed .icon { fill: var(--accent); }
-
-        .task-text { font-size: 0.95rem; font-weight: 600; }
-
-        /* CIRCLE CHECKBOX */
+        .task-text { font-size: 0.9rem; font-weight: 500; letter-spacing: 0.5px; }
         .check-circle {
-            width: 24px; height: 24px;
-            border-radius: 50%;
-            border: 2px solid var(--text-secondary);
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.3s;
+            width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text-secondary);
+            opacity: 0.5; transition: all 0.3s;
         }
+        .task-card.completed .check-circle { background-color: var(--accent); border-color: var(--accent); opacity: 1; box-shadow: 0 0 10px var(--accent); }
 
-        .task-card.completed .check-circle {
-            background-color: var(--accent);
-            border-color: var(--accent);
-            box-shadow: 0 0 10px var(--accent);
+        /* --- BUTTONS --- */
+        .btn-container { width: 100%; margin-bottom: 20px; }
+        .btn-outlined {
+            width: 100%; padding: 12px; background: transparent; color: var(--accent);
+            border: 1px solid var(--accent); border-radius: 8px;
+            font-family: 'Courier New', monospace; font-size: 0.9rem; letter-spacing: 1px;
+            cursor: pointer; transition: all 0.3s ease;
         }
+        .btn-outlined:hover { background: var(--accent-dim); box-shadow: 0 0 15px var(--accent-dim); }
 
-        .check-circle::after {
-            content: "✓"; color: #050a10; font-weight: bold; font-size: 14px; display: none;
-        }
-        .task-card.completed .check-circle::after { display: block; }
+        /* --- PROGRESS VECTOR (Day X/75) --- */
+        .progress-container { width: 100%; margin-top: 20px; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 10px; letter-spacing: 1px; }
+        .progress-track { width: 100%; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background-color: var(--accent); transition: width 0.5s ease; box-shadow: 0 0 10px var(--accent); }
+        .status-text { text-align: center; color: var(--text-secondary); font-size: 0.8rem; margin-top: 30px; opacity: 0.7; min-height: 20px;}
 
-        /* PROGRESS BAR */
-        .progress-container {
-            width: 100%; max-width: 500px; margin-top: 30px;
+        /* --- HISTORY VIEW (Hidden by default) --- */
+        #historyView { display: none; width: 100%; max-width: 500px; flex-direction: column; align-items: center; }
+        .history-list { width: 100%; list-style: none; padding: 0; margin-top: 20px; max-height: 60vh; overflow-y: auto;}
+        /* Custom scrollbar for history */
+        .history-list::-webkit-scrollbar { width: 5px; }
+        .history-list::-webkit-scrollbar-track { background: var(--bg-color); }
+        .history-list::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 10px; }
+        
+        .history-card {
+            background: var(--card-bg); margin-bottom: 10px; padding: 15px;
+            border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+            opacity: 0.8;
         }
-        .progress-label {
-            display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px; letter-spacing: 1px;
-        }
-        .progress-track {
-            width: 100%; height: 6px; background: var(--card-bg); border-radius: 3px; overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%; width: 0%; background-color: var(--accent);
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 0 10px var(--accent);
-        }
-
-        .status-text { text-align: center; color: var(--text-secondary); font-size: 0.8rem; margin-top: 30px; opacity: 0.7; }
-
+        .history-card.perfect { border-color: var(--accent); opacity: 1; background: var(--accent-dim);}
+        .h-date { font-size: 0.8rem; color: var(--text-primary); }
+        .h-status { font-size: 0.7rem; color: var(--text-secondary); letter-spacing: 1px;}
+        .perfect .h-status { color: var(--accent); }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="sub-title">Daily Objective</div>
-        <h1 class="main-title" id="dayDisplay">DAY --</h1>
+    <svg class="top-logo" viewBox="0 0 24 24" onclick="window.location.reload()">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+    </svg>
+
+    <div id="mainView">
+        <div class="header">
+            <div class="sub-title">Current Protocol</div>
+            <h1 class="main-title" id="dayDisplay">Day --</h1>
+        </div>
+
+        <div class="btn-container">
+            <button class="btn-outlined" id="toHistoryBtn">VIEW PAST ENTRIES_</button>
+        </div>
+
+        <ul class="task-list" id="taskList">
+            </ul>
+
+        <div class="progress-container">
+            <div class="progress-label">
+                <span>75 DAY VECTOR</span>
+                <span id="progressPercent">0/75</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </div>
+        <div class="status-text" id="statusMsg">Initializing System...</div>
     </div>
 
-    <ul class="task-list" id="taskList">
+    <div id="historyView">
+         <div class="header">
+            <h1 class="main-title" style="font-size: 2rem;">LOG ARCHIVE</h1>
+        </div>
+        <div class="btn-container">
+            <button class="btn-outlined" id="toMainBtn">Let's get it_</button>
+        </div>
+        <ul class="history-list" id="historyList">
+            <li class="status-text">Loading logs...</li>
         </ul>
-
-    <div class="progress-container">
-        <div class="progress-label">
-            <span>PROGRESS VECTOR</span>
-            <span id="progressPercent">0%</span>
-        </div>
-        <div class="progress-track">
-            <div class="progress-fill" id="progressBar"></div>
-        </div>
     </div>
 
-    <div class="status-text" id="statusMsg">Initializing System...</div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // --- YOUR NEW CONFIG IS HERE ---
     const firebaseConfig = {
       apiKey: "AIzaSyAEcfXCaXAXA6OJwhTOsJ4kS4PK2kTHT3U",
       authDomain: "my-75-smart-tracker.firebaseapp.com",
@@ -152,96 +159,167 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const auth = getAuth(app);
-    const docRef = doc(db, "tracker", "user_data");
+    const mainDocRef = doc(db, "tracker", "user_data");
+    const historyColRef = collection(db, "tracker_history");
 
-    // Icons for each task
+    // --- Updated Tasks (6 items now) & Duplicate Clock Icon ---
     const icons = [
-        '<path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/>', // Clock
+        '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>', // Clock
+        '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>', // Clock (Duplicate)
         '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>', // Brain
-        '<path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/>', // Book
+        '<path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 5.6 1 6.5v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>', // Book
         '<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>', // Pen
         '<path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>' // Phone
     ];
-
     const taskNames = [
-        "Deep Focus (30-45m)",
-        "Meta Learning (15m)",
-        "Non-Fiction (10+ Pages)",
-        "Intellectual Output",
+        "Deep Focus: Session Alpha (45m)", 
+        "Deep Focus: Session Beta (45m)", 
+        "Meta Learning (15m)", 
+        "Non-Fiction (10+ Pages)", 
+        "Intellectual Output", 
         "Zero Scrolling (Pre-1700)"
     ];
 
-    let state = { day: 1, lastDate: new Date().toDateString(), tasks: [false, false, false, false, false] };
+    // State now has 6 false values
+    let state = { day: 1, lastDate: new Date().toDateString(), tasks: Array(6).fill(false) };
 
-    // Login & Load
-    signInAnonymously(auth).then(() => loadData()).catch(e => updateStatus("Auth Error: " + e.message, true));
+    // --- View Toggling ---
+    const mainView = document.getElementById('mainView');
+    const historyView = document.getElementById('historyView');
+    document.getElementById('toHistoryBtn').onclick = () => {
+        mainView.style.display = 'none';
+        historyView.style.display = 'flex';
+        loadHistory();
+    };
+    document.getElementById('toMainBtn').onclick = () => {
+        historyView.style.display = 'none';
+        mainView.style.display = 'flex';
+    };
 
-    async function loadData() {
+    // --- Core Logic ---
+    signInAnonymously(auth).then(() => loadMainData()).catch(e => updateStatus("Auth Error: " + e.message, true));
+
+    async function loadMainData() {
         try {
-            const docSnap = await getDoc(docRef);
+            const docSnap = await getDoc(mainDocRef);
             if (docSnap.exists()) { checkResetLogic(docSnap.data()); } 
-            else { await saveData(state); render(); }
+            else { await saveData(state); renderMain(); }
         } catch (error) { updateStatus("Connection Failed", true); }
     }
 
-    function checkResetLogic(cloudState) {
+    async function checkResetLogic(cloudState) {
         const today = new Date().toDateString();
-        if (cloudState.lastDate === today) { state = cloudState; render(); return; }
+        if (cloudState.lastDate === today) { 
+            // It's still today, just load the data.
+            state = cloudState; 
+            // Ensure task array length matches current app version if it changed
+            if(state.tasks.length !== taskNames.length) {
+                 state.tasks = Array(taskNames.length).fill(false);
+            }
+            renderMain(); 
+            return; 
+        }
         
+        // It's a new day. Check yesterday's results.
         const allDone = cloudState.tasks.every(t => t);
         const diff = Math.ceil(Math.abs(new Date(today) - new Date(cloudState.lastDate)) / (86400000));
         
-        state.day = (allDone && diff === 1) ? cloudState.day + 1 : 1;
+        // IMPORTANT: Save yesterday's data to history before resetting
+        await archiveDay(cloudState, allDone);
+
+        if (allDone && diff === 1) {
+            state.day = cloudState.day + 1; // Streak continues
+            updateStatus("Streak Retained. Advancing.");
+        } else {
+            state.day = 1; // Streak broken
+            updateStatus("Protocol Reset. Day 1.", true);
+        }
+        // Reset tasks for today
         state.tasks.fill(false);
         state.lastDate = today;
         saveData(state);
     }
 
     async function saveData(newState) {
-        state = newState; render();
-        updateStatus("Syncing...");
-        try { await setDoc(docRef, newState); updateStatus("Data Secured"); }
+        state = newState; renderMain();
+        try { await setDoc(mainDocRef, newState); }
         catch (e) { updateStatus("Save Failed", true); }
+    }
+
+    // Function to save completed days to history collection
+    async function archiveDay(oldState, wasPerfect) {
+        try {
+             // Use date string as document ID for history
+            const historyDocRef = doc(historyColRef, oldState.lastDate);
+            await setDoc(historyDocRef, {
+                dayNum: oldState.day,
+                date: oldState.lastDate,
+                perfect: wasPerfect
+            });
+        } catch (e) { console.error("Could not archive day", e); }
+    }
+
+    async function loadHistory() {
+        const listEl = document.getElementById('historyList');
+        listEl.innerHTML = '<li class="status-text">Loading archives...</li>';
+        try {
+            // Get last 30 entries, ordered by date string (simple approximation)
+            const q = query(historyColRef, orderBy("date", "desc"), limit(30));
+            const querySnapshot = await getDocs(q);
+            
+            if(querySnapshot.empty) {
+                 listEl.innerHTML = '<li class="status-text" style="opacity:0.5">No past logs found. Complete a day to see it here.</li>';
+                 return;
+            }
+
+            listEl.innerHTML = ""; // Clear loading message
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const li = document.createElement('li');
+                li.className = `history-card ${data.perfect ? 'perfect' : ''}`;
+                li.innerHTML = `
+                    <div>
+                        <div style="font-weight:bold; color:var(--accent);">Day ${data.dayNum}</div>
+                        <div class="h-date">${data.date}</div>
+                    </div>
+                    <div class="h-status">${data.perfect ? 'PROTOCOL COMPLETE' : 'INCOMPLETE'}</div>
+                `;
+                listEl.appendChild(li);
+            });
+        } catch (e) {
+            listEl.innerHTML = '<li class="status-text" style="color:var(--fail)">Load Error.</li>';
+        }
     }
 
     function updateStatus(msg, isError = false) {
         const el = document.getElementById('statusMsg');
-        el.innerText = msg;
-        el.style.color = isError ? "#ff5555" : "#64748b";
+        el.innerText = msg; el.style.color = isError ? "var(--fail)" : "var(--text-secondary)";
     }
 
-    function render() {
-        document.getElementById('dayDisplay').innerText = `DAY ${state.day}`;
+    function renderMain() {
+        document.getElementById('dayDisplay').innerText = `Day ${state.day}`;
         const list = document.getElementById('taskList');
         list.innerHTML = "";
         
         let completedCount = 0;
-
         taskNames.forEach((name, index) => {
             const isChecked = state.tasks[index];
             if(isChecked) completedCount++;
-
             const li = document.createElement('li');
             li.className = `task-card ${isChecked ? 'completed' : ''}`;
-            li.innerHTML = `
-                <div class="left-section">
-                    <svg class="icon" viewBox="0 0 24 24">${icons[index]}</svg>
-                    <span class="task-text">${name}</span>
-                </div>
-                <div class="check-circle"></div>
-            `;
-            
-            li.onclick = () => {
-                state.tasks[index] = !state.tasks[index];
-                saveData(state);
-            };
+            li.innerHTML = `<div class="left-section"><svg class="icon" viewBox="0 0 24 24">${icons[index]}</svg><span class="task-text">${name}</span></div><div class="check-circle"></div>`;
+            li.onclick = () => { state.tasks[index] = !state.tasks[index]; saveData(state); };
             list.appendChild(li);
         });
 
-        // Update Progress Bar
-        const percent = Math.round((completedCount / taskNames.length) * 100);
+        // Progress Vector: Day X out of 75
+        const totalDays = 75;
+        // Calculate percentage based on current Day number vs 75, capped at 100%
+        const percent = Math.min(Math.round((state.day / totalDays) * 100), 100);
         document.getElementById('progressBar').style.width = `${percent}%`;
-        document.getElementById('progressPercent').innerText = `${percent}%`;
+        document.getElementById('progressPercent').innerText = `Day ${state.day}/${totalDays}`;
+
+        if(state.tasks.every(t=>t)) updateStatus("All systems nominal. Stand by for tomorrow.");
     }
 </script>
 </body>
