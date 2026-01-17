@@ -3,44 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>75 Smart (Cloud Sync)</title>
+    <title>Protocol 75: INTELLECT</title>
     <style>
-        :root { --bg-color: #111; --text-color: #eee; --accent: #4caf50; --fail: #f44336; }
-        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .container { width: 90%; max-width: 400px; }
-        h1 { font-size: 1.5rem; text-align: center; margin-bottom: 0.5rem; }
-        .day-counter { font-size: 4rem; text-align: center; margin: 1rem 0; font-weight: bold; }
-        .status-msg { text-align: center; color: #888; margin-bottom: 2rem; font-size: 0.9rem; min-height: 20px;}
+        /* INTELLIGENCE THEME */
+        :root {
+            --bg-color: #050a10;
+            --panel-bg: #0a1520;
+            --text-primary: #a8b2d1;
+            --accent: #64ffda; /* Neon Cyan */
+            --glow: 0 0 10px rgba(100, 255, 218, 0.3);
+            --fail: #ff5555;
+            --border: 1px solid #1e2d3d;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; margin: 0;
+            background-image: linear-gradient(rgba(10, 21, 32, 0.9), rgba(5, 10, 16, 1));
+        }
+        .container {
+            width: 90%; max-width: 450px; background: var(--panel-bg);
+            padding: 2rem; border-radius: 8px; border: var(--border);
+            box-shadow: 0 10px 30px -10px rgba(2, 12, 27, 0.7);
+            position: relative; overflow: hidden;
+        }
+        .container::before {
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: var(--accent); box-shadow: var(--glow);
+        }
+        h1 { font-size: 0.8rem; letter-spacing: 3px; text-align: center; color: var(--accent); text-transform: uppercase; margin-bottom: 0.5rem; opacity: 0.8; }
+        .day-counter { font-size: 3.5rem; text-align: center; margin: 0.5rem 0; font-weight: 700; color: #e6f1ff; text-shadow: var(--glow); }
+        .status-msg { text-align: center; color: #8892b0; font-size: 0.8rem; margin-bottom: 2rem; min-height: 20px; font-style: italic; }
         .task-list { list-style: none; padding: 0; }
-        .task-item { background: #222; margin-bottom: 10px; padding: 15px; border-radius: 5px; display: flex; align-items: center; cursor: pointer; transition: 0.2s; }
-        .task-item:hover { background: #333; }
-        .task-item input { margin-right: 15px; transform: scale(1.5); cursor: pointer; }
-        .task-text { flex-grow: 1; }
-        .shake { animation: shake 0.5s; color: var(--fail); }
-        @keyframes shake { 0% { transform: translate(1px, 1px); } 25% { transform: translate(-2px, -2px); } 50% { transform: translate(2px, 2px); } 75% { transform: translate(-1px, -1px); } 100% { transform: translate(0, 0); } }
+        .task-item {
+            background: rgba(17, 34, 64, 0.5); margin-bottom: 12px; padding: 15px;
+            border: 1px solid transparent; border-radius: 4px; display: flex; align-items: center;
+            cursor: pointer; transition: all 0.2s ease;
+        }
+        .task-item:hover { border-color: var(--accent); transform: translateX(5px); background: rgba(17, 34, 64, 0.8); }
+        .task-item input {
+            appearance: none; width: 18px; height: 18px; border: 2px solid var(--text-primary);
+            border-radius: 2px; margin-right: 15px; display: grid; place-content: center; cursor: pointer;
+        }
+        .task-item input::before {
+            content: ""; width: 10px; height: 10px; transform: scale(0);
+            background-color: var(--accent); transition: 120ms transform ease-in-out; box-shadow: var(--glow);
+        }
+        .task-item input:checked { border-color: var(--accent); }
+        .task-item input:checked::before { transform: scale(1); }
+        .task-text { flex-grow: 1; font-size: 0.9rem; }
+        .shake { animation: shake 0.5s; color: var(--fail); text-shadow: none; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>75 SMART TRACKER</h1>
-    <div class="day-counter" id="dayDisplay">...</div>
-    <div class="status-msg" id="statusMsg">Connecting...</div>
+    <h1>System Status</h1>
+    <div class="day-counter" id="dayDisplay">INIT...</div>
+    <div class="status-msg" id="statusMsg">Authenticating secure uplink...</div>
 
     <ul class="task-list" id="taskList" style="opacity: 0.5; pointer-events: none;">
         <li class="task-item"><input type="checkbox" class="task-check"> <span class="task-text">Deep Focus (30-45m)</span></li>
         <li class="task-item"><input type="checkbox" class="task-check"> <span class="task-text">Meta Learning (15m)</span></li>
         <li class="task-item"><input type="checkbox" class="task-check"> <span class="task-text">Non-Fiction (10+ Pages)</span></li>
         <li class="task-item"><input type="checkbox" class="task-check"> <span class="task-text">Intellectual Output</span></li>
-        <li class="task-item"><input type="checkbox" class="task-check"> <span class="task-text">No Scrolling before 5PM</span></li>
+        <li class="task-item"><input type="checkbox" class="task-check"> <span class="task-text">Zero Scrolling (Pre-1700)</span></li>
     </ul>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // YOUR FIREBASE CONFIGURATION (From your screenshot)
+    // I HAVE INSERTED YOUR KEYS FROM YOUR SCREENSHOT HERE:
     const firebaseConfig = {
       apiKey: "AIzaSyDUNSwNzla0SgTtQspZdLGBb0g01dXw0JQ",
       authDomain: "my-75-smart-tracker.firebaseapp.com",
@@ -52,18 +91,33 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
+    const auth = getAuth(app);
     const docRef = doc(db, "tracker", "user_data");
 
     let state = { day: 1, lastDate: new Date().toDateString(), tasks: [false, false, false, false, false] };
     const ui = { day: document.getElementById('dayDisplay'), status: document.getElementById('statusMsg'), checkboxes: document.querySelectorAll('.task-check'), list: document.getElementById('taskList') };
 
+    // 1. Log in silently
+    signInAnonymously(auth)
+    .then(() => {
+        loadData(); // If login works, load data
+    })
+    .catch((error) => {
+        ui.status.innerText = "AUTH FAILED: Enable Anonymous Auth in Firebase Console";
+        ui.status.style.color = "#ff5555";
+    });
+
     async function loadData() {
         try {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) { checkResetLogic(docSnap.data()); } 
-            else { saveData(state); render(); }
+            else { await saveData(state); render(); }
             ui.list.style.opacity = "1"; ui.list.style.pointerEvents = "auto";
-        } catch (error) { console.error(error); ui.status.innerText = "Connection Failed. Check Console."; }
+        } catch (error) { 
+            console.error(error); 
+            ui.status.innerText = "CONNECTION ERROR."; 
+            ui.status.style.color = "#ff5555";
+        }
     }
 
     function checkResetLogic(cloudState) {
@@ -76,20 +130,27 @@
         if (allCompleted && diffDays === 1) {
             state.day = cloudState.day + 1;
             state.tasks = state.tasks.map(() => false);
-            ui.status.innerText = "Streak active.";
+            ui.status.innerText = "STREAK RETAINED. INCREMENTING.";
         } else {
             state.day = 1;
             state.tasks = state.tasks.map(() => false);
             ui.day.classList.add('shake');
-            ui.status.innerText = "Reset to Day 1.";
-            ui.status.style.color = "#f44336";
+            ui.status.innerText = "PROTOCOL FAILED. RESETTING TO DAY 1.";
+            ui.status.style.color = "#ff5555";
         }
         state.lastDate = today;
         saveData(state);
     }
 
     async function saveData(newState) {
-        state = newState; render(); await setDoc(docRef, newState);
+        state = newState; render(); 
+        ui.status.innerText = "UPLOADING DATA..."; ui.status.style.color = "#64ffda";
+        try {
+            await setDoc(docRef, newState);
+            ui.status.innerText = "DATA SECURED."; ui.status.style.color = "#64ffda";
+        } catch (e) {
+            ui.status.innerText = "UPLOAD FAILED."; ui.status.style.color = "#ff5555";
+        }
     }
 
     function render() {
@@ -98,13 +159,11 @@
             box.checked = state.tasks[index];
             box.onclick = () => {
                 state.tasks[index] = box.checked;
-                if(state.tasks.every(t => t)) { ui.status.innerText = "Done. Saved."; ui.status.style.color = "#4caf50"; }
-                else { ui.status.innerText = "Saving..."; ui.status.style.color = "#888"; }
+                if(state.tasks.every(t => t)) { ui.status.innerText = "OBJECTIVES COMPLETE."; }
                 saveData(state);
             };
         });
     }
-    loadData();
 </script>
 </body>
 </html>
