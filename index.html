@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROTOCOL 75 // NODE ACTIVE</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%2364ffda%22><path d=%22M21 11V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h6v-2H5V5h14v6h2zm-9 1h9v2h-9v-2zm0 4h9v2h-9v-2zm0 4h9v2h-9v-2z%22/></svg>">
+    <title>PROTOCOL 75</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%2364ffda%22><rect x=%224%22 y=%224%22 width=%2216%22 height=%2216%22 rx=%222%22/></svg>">
 
     <style>
         :root {
@@ -14,6 +14,7 @@
             --text-secondary: #64748b;
             --accent: #64ffda;
             --accent-dim: rgba(100, 255, 218, 0.1);
+            --glass: rgba(15, 28, 46, 0.85);
             --fail: #ff5555;
         }
 
@@ -23,130 +24,148 @@
             font-family: 'Courier New', monospace;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh; margin: 0; padding: 20px;
+            padding-bottom: 100px; /* Space for floating bar */
             box-sizing: border-box; position: relative;
         }
 
         /* --- TOP RIGHT LOGO --- */
         .top-logo {
-            position: absolute; top: 20px; right: 20px;
-            width: 32px; height: 32px; fill: var(--accent);
-            cursor: pointer; transition: all 0.3s ease;
-            filter: drop-shadow(0 0 5px var(--accent-dim));
+            position: absolute; top: 25px; right: 25px;
+            width: 24px; height: 24px; fill: var(--text-secondary);
+            cursor: pointer; transition: all 0.3s ease; opacity: 0.5;
         }
-        .top-logo:hover { transform: rotate(90deg) scale(1.1); filter: drop-shadow(0 0 10px var(--accent)); }
+        .top-logo:hover { fill: var(--accent); opacity: 1; transform: rotate(90deg); }
 
-        /* --- MAIN VIEW --- */
-        #mainView { width: 100%; max-width: 500px; display: flex; flex-direction: column; align-items: center; }
+        /* --- HEADERS --- */
+        #mainView, #historyView { width: 100%; max-width: 550px; display: flex; flex-direction: column; align-items: center; }
         
         .header { text-align: center; margin-bottom: 30px; margin-top: 40px; }
         .sub-title { font-size: 0.7rem; letter-spacing: 4px; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 8px; }
-        .main-title { font-size: 3.5rem; font-weight: 700; color: #e2e8f0; margin: 0; font-family: sans-serif; text-shadow: 0 0 15px rgba(100,255,218,0.1); }
+        .main-title { font-size: 3.5rem; font-weight: 700; color: #e2e8f0; margin: 0; font-family: sans-serif; text-shadow: 0 0 20px rgba(100,255,218,0.05); }
 
+        /* --- TASK CARDS --- */
         .task-list { width: 100%; list-style: none; padding: 0; }
         .task-card {
             background: var(--card-bg); margin-bottom: 12px; padding: 18px 22px;
             border-radius: 12px; display: flex; align-items: center; justify-content: space-between;
             cursor: pointer; transition: all 0.2s ease;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.03);
         }
         .task-card:hover { transform: translateY(-2px); background: #13233a; border-color: var(--text-secondary); }
         .task-card.completed { background: var(--accent-dim); border-color: var(--accent); }
+        
         .left-section { display: flex; align-items: center; gap: 15px; }
         .icon { width: 20px; height: 20px; fill: var(--text-secondary); transition: fill 0.3s; }
         .task-card.completed .icon { fill: var(--accent); }
         .task-text { font-size: 0.9rem; font-weight: 500; letter-spacing: 0.5px; }
+        
         .check-circle {
             width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text-secondary);
             opacity: 0.5; transition: all 0.3s;
         }
         .task-card.completed .check-circle { background-color: var(--accent); border-color: var(--accent); opacity: 1; box-shadow: 0 0 10px var(--accent); }
 
-        /* --- BUTTONS --- */
-        .btn-container { width: 100%; margin-bottom: 20px; }
-        .btn-outlined {
-            width: 100%; padding: 12px; background: transparent; color: var(--accent);
-            border: 1px solid var(--accent); border-radius: 8px;
-            font-family: 'Courier New', monospace; font-size: 0.9rem; letter-spacing: 1px;
-            cursor: pointer; transition: all 0.3s ease;
+        /* --- FLOATING PROGRESS VECTOR (Faded Bottom Bar) --- */
+        .progress-fixed {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 500px;
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 15px 20px; border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            z-index: 100; transition: opacity 0.5s ease;
         }
-        .btn-outlined:hover { background: var(--accent-dim); box-shadow: 0 0 15px var(--accent-dim); }
-
-        /* --- PROGRESS VECTOR (Day X/75) --- */
-        .progress-container { width: 100%; margin-top: 20px; }
-        .progress-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 10px; letter-spacing: 1px; }
-        .progress-track { width: 100%; height: 6px; background: #1e293b; border-radius: 3px; overflow: hidden; }
-        .progress-fill { height: 100%; width: 0%; background-color: var(--accent); transition: width 0.5s ease; box-shadow: 0 0 10px var(--accent); }
-        .status-text { text-align: center; color: var(--text-secondary); font-size: 0.8rem; margin-top: 30px; opacity: 0.7; min-height: 20px;}
-
-        /* --- HISTORY VIEW (Hidden by default) --- */
-        #historyView { display: none; width: 100%; max-width: 500px; flex-direction: column; align-items: center; }
-        .history-list { width: 100%; list-style: none; padding: 0; margin-top: 20px; max-height: 60vh; overflow-y: auto;}
-        /* Custom scrollbar for history */
-        .history-list::-webkit-scrollbar { width: 5px; }
-        .history-list::-webkit-scrollbar-track { background: var(--bg-color); }
-        .history-list::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 10px; }
         
-        .history-card {
-            background: var(--card-bg); margin-bottom: 10px; padding: 15px;
-            border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);
-            display: flex; justify-content: space-between; align-items: center;
-            opacity: 0.8;
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 8px; letter-spacing: 1px; font-weight: bold;}
+        .progress-track { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background-color: var(--accent); transition: width 0.5s ease; box-shadow: 0 0 10px var(--accent); }
+
+        /* --- ARCHIVE GRID (The 1-75 Look) --- */
+        #historyView { display: none; }
+        .archive-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 8px; width: 100%; margin-top: 20px;
         }
-        .history-card.perfect { border-color: var(--accent); opacity: 1; background: var(--accent-dim);}
-        .h-date { font-size: 0.8rem; color: var(--text-primary); }
-        .h-status { font-size: 0.7rem; color: var(--text-secondary); letter-spacing: 1px;}
-        .perfect .h-status { color: var(--accent); }
+        .archive-box {
+            aspect-ratio: 1;
+            background: var(--card-bg);
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; color: var(--text-secondary);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+        .archive-box.filled {
+            background: var(--accent);
+            color: var(--bg-color);
+            border-color: var(--accent);
+            font-weight: bold;
+            box-shadow: 0 0 10px var(--accent-dim);
+        }
+        .archive-box.current { border-color: var(--text-secondary); color: var(--text-primary); }
+
+        /* --- BUTTONS --- */
+        .btn-link {
+            background: none; border: none; color: var(--text-secondary);
+            font-family: 'Courier New', monospace; font-size: 0.8rem;
+            cursor: pointer; text-decoration: underline; margin-top: 10px; opacity: 0.6;
+        }
+        .btn-link:hover { color: var(--accent); opacity: 1; }
+
+        .status-text { text-align: center; color: var(--text-secondary); font-size: 0.75rem; margin-top: 10px; opacity: 0.5; }
     </style>
 </head>
 <body>
 
     <svg class="top-logo" viewBox="0 0 24 24" onclick="window.location.reload()">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/>
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 7h2v6h-2zm0 8h2v2h-2z"/>
     </svg>
 
     <div id="mainView">
         <div class="header">
-            <div class="sub-title">Current Protocol</div>
+            <div class="sub-title">Daily Objective</div>
             <h1 class="main-title" id="dayDisplay">Day --</h1>
-        </div>
-
-        <div class="btn-container">
-            <button class="btn-outlined" id="toHistoryBtn">VIEW PAST ENTRIES_</button>
         </div>
 
         <ul class="task-list" id="taskList">
             </ul>
-
-        <div class="progress-container">
-            <div class="progress-label">
-                <span>75 DAY VECTOR</span>
-                <span id="progressPercent">0/75</span>
-            </div>
-            <div class="progress-track">
-                <div class="progress-fill" id="progressBar"></div>
-            </div>
-        </div>
-        <div class="status-text" id="statusMsg">Initializing System...</div>
+        
+        <div class="status-text" id="statusMsg">System Sync...</div>
+        <button class="btn-link" id="toHistoryBtn">View Archives</button>
     </div>
 
     <div id="historyView">
          <div class="header">
-            <h1 class="main-title" style="font-size: 2rem;">LOG ARCHIVE</h1>
+            <h1 class="main-title" style="font-size: 2.5rem;">Archives</h1>
+            <div class="sub-title">75 Day Protocol</div>
         </div>
-        <div class="btn-container">
-            <button class="btn-outlined" id="toMainBtn">Let's get it_</button>
+        
+        <div class="archive-grid" id="archiveGrid">
+            </div>
+
+        <button class="btn-link" style="margin-top: 30px;" id="toMainBtn">Return to Active Day</button>
+    </div>
+
+    <div class="progress-fixed">
+        <div class="progress-label">
+            <span>PROGRESS VECTOR</span>
+            <span id="progressPercent">0%</span>
         </div>
-        <ul class="history-list" id="historyList">
-            <li class="status-text">Loading logs...</li>
-        </ul>
+        <div class="progress-track">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
     </div>
 
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+    // YOUR API KEY (Preserved from history)
     const firebaseConfig = {
       apiKey: "AIzaSyAEcfXCaXAXA6OJwhTOsJ4kS4PK2kTHT3U",
       authDomain: "my-75-smart-tracker.firebaseapp.com",
@@ -162,14 +181,14 @@
     const mainDocRef = doc(db, "tracker", "user_data");
     const historyColRef = collection(db, "tracker_history");
 
-    // --- Updated Tasks (6 items now) & Duplicate Clock Icon ---
+    // NEW ICONS (Meta Learning updated to Structure Icon)
     const icons = [
-        '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>', // Clock
-        '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>', // Clock (Duplicate)
-        '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/>', // Brain
-        '<path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 5.6 1 6.5v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>', // Book
-        '<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>', // Pen
-        '<path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>' // Phone
+        '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>',
+        '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>',
+        '<path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>', // Structure Icon (Meta Learning)
+        '<path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 5.6 1 6.5v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>',
+        '<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>',
+        '<path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>'
     ];
     const taskNames = [
         "Deep Focus: Session Alpha (45m)", 
@@ -180,61 +199,52 @@
         "Zero Scrolling (Pre-1700)"
     ];
 
-    // State now has 6 false values
     let state = { day: 1, lastDate: new Date().toDateString(), tasks: Array(6).fill(false) };
 
-    // --- View Toggling ---
     const mainView = document.getElementById('mainView');
     const historyView = document.getElementById('historyView');
+    
+    // Switch to Archive View
     document.getElementById('toHistoryBtn').onclick = () => {
         mainView.style.display = 'none';
         historyView.style.display = 'flex';
-        loadHistory();
+        renderArchiveGrid();
     };
+    
+    // Switch to Main View
     document.getElementById('toMainBtn').onclick = () => {
         historyView.style.display = 'none';
         mainView.style.display = 'flex';
     };
 
-    // --- Core Logic ---
-    signInAnonymously(auth).then(() => loadMainData()).catch(e => updateStatus("Auth Error: " + e.message, true));
+    signInAnonymously(auth).then(() => loadMainData()).catch(e => console.error(e));
 
     async function loadMainData() {
         try {
             const docSnap = await getDoc(mainDocRef);
             if (docSnap.exists()) { checkResetLogic(docSnap.data()); } 
             else { await saveData(state); renderMain(); }
-        } catch (error) { updateStatus("Connection Failed", true); }
+        } catch (error) { document.getElementById('statusMsg').innerText = "Offline Mode"; }
     }
 
     async function checkResetLogic(cloudState) {
         const today = new Date().toDateString();
         if (cloudState.lastDate === today) { 
-            // It's still today, just load the data.
             state = cloudState; 
-            // Ensure task array length matches current app version if it changed
-            if(state.tasks.length !== taskNames.length) {
-                 state.tasks = Array(taskNames.length).fill(false);
-            }
+            if(state.tasks.length !== taskNames.length) state.tasks = Array(taskNames.length).fill(false);
             renderMain(); 
             return; 
         }
         
-        // It's a new day. Check yesterday's results.
         const allDone = cloudState.tasks.every(t => t);
         const diff = Math.ceil(Math.abs(new Date(today) - new Date(cloudState.lastDate)) / (86400000));
         
-        // IMPORTANT: Save yesterday's data to history before resetting
+        // Archive yesterday's data
         await archiveDay(cloudState, allDone);
 
-        if (allDone && diff === 1) {
-            state.day = cloudState.day + 1; // Streak continues
-            updateStatus("Streak Retained. Advancing.");
-        } else {
-            state.day = 1; // Streak broken
-            updateStatus("Protocol Reset. Day 1.", true);
-        }
-        // Reset tasks for today
+        if (allDone && diff === 1) { state.day = cloudState.day + 1; } 
+        else { state.day = 1; }
+        
         state.tasks.fill(false);
         state.lastDate = today;
         saveData(state);
@@ -242,58 +252,53 @@
 
     async function saveData(newState) {
         state = newState; renderMain();
-        try { await setDoc(mainDocRef, newState); }
-        catch (e) { updateStatus("Save Failed", true); }
+        document.getElementById('statusMsg').innerText = "Saving...";
+        try { await setDoc(mainDocRef, newState); document.getElementById('statusMsg').innerText = "System Synced"; }
+        catch (e) { document.getElementById('statusMsg').innerText = "Save Failed"; }
     }
 
-    // Function to save completed days to history collection
     async function archiveDay(oldState, wasPerfect) {
+        if(!wasPerfect) return; // Only archive perfect days? Or all days? Logic suggests perfect for the grid.
         try {
-             // Use date string as document ID for history
             const historyDocRef = doc(historyColRef, oldState.lastDate);
-            await setDoc(historyDocRef, {
-                dayNum: oldState.day,
-                date: oldState.lastDate,
-                perfect: wasPerfect
-            });
-        } catch (e) { console.error("Could not archive day", e); }
+            await setDoc(historyDocRef, { dayNum: oldState.day, date: oldState.lastDate, perfect: wasPerfect });
+        } catch (e) { console.error(e); }
     }
 
-    async function loadHistory() {
-        const listEl = document.getElementById('historyList');
-        listEl.innerHTML = '<li class="status-text">Loading archives...</li>';
+    // --- ARCHIVE GRID LOGIC ---
+    async function renderArchiveGrid() {
+        const grid = document.getElementById('archiveGrid');
+        grid.innerHTML = '<div style="color:#64748b; font-size:0.8rem;">Loading Grid...</div>';
+        
+        // Get completed days
+        let completedDays = [];
         try {
-            // Get last 30 entries, ordered by date string (simple approximation)
-            const q = query(historyColRef, orderBy("date", "desc"), limit(30));
-            const querySnapshot = await getDocs(q);
-            
-            if(querySnapshot.empty) {
-                 listEl.innerHTML = '<li class="status-text" style="opacity:0.5">No past logs found. Complete a day to see it here.</li>';
-                 return;
-            }
-
-            listEl.innerHTML = ""; // Clear loading message
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                const li = document.createElement('li');
-                li.className = `history-card ${data.perfect ? 'perfect' : ''}`;
-                li.innerHTML = `
-                    <div>
-                        <div style="font-weight:bold; color:var(--accent);">Day ${data.dayNum}</div>
-                        <div class="h-date">${data.date}</div>
-                    </div>
-                    <div class="h-status">${data.perfect ? 'PROTOCOL COMPLETE' : 'INCOMPLETE'}</div>
-                `;
-                listEl.appendChild(li);
+            const snap = await getDocs(historyColRef);
+            snap.forEach(d => {
+                const data = d.data();
+                if(data.perfect) completedDays.push(data.dayNum);
             });
-        } catch (e) {
-            listEl.innerHTML = '<li class="status-text" style="color:var(--fail)">Load Error.</li>';
-        }
-    }
+        } catch(e) { console.log("History load error"); }
 
-    function updateStatus(msg, isError = false) {
-        const el = document.getElementById('statusMsg');
-        el.innerText = msg; el.style.color = isError ? "var(--fail)" : "var(--text-secondary)";
+        grid.innerHTML = "";
+        
+        // Create 75 Boxes
+        for (let i = 1; i <= 75; i++) {
+            const box = document.createElement('div');
+            box.className = 'archive-box';
+            box.innerText = i;
+            
+            // If day is in history, light it up
+            if (completedDays.includes(i)) {
+                box.classList.add('filled');
+            }
+            // If it is the current day, outline it
+            if (i === state.day) {
+                box.classList.add('current');
+            }
+            
+            grid.appendChild(box);
+        }
     }
 
     function renderMain() {
@@ -312,14 +317,11 @@
             list.appendChild(li);
         });
 
-        // Progress Vector: Day X out of 75
+        // Update Progress Vector
         const totalDays = 75;
-        // Calculate percentage based on current Day number vs 75, capped at 100%
         const percent = Math.min(Math.round((state.day / totalDays) * 100), 100);
         document.getElementById('progressBar').style.width = `${percent}%`;
-        document.getElementById('progressPercent').innerText = `Day ${state.day}/${totalDays}`;
-
-        if(state.tasks.every(t=>t)) updateStatus("All systems nominal. Stand by for tomorrow.");
+        document.getElementById('progressPercent').innerText = `Day ${state.day} / 75`;
     }
 </script>
 </body>
