@@ -29,7 +29,7 @@
             box-sizing: border-box; position: relative;
         }
 
-        /* --- LOCK SCREEN (EMAIL/PASS) --- */
+        /* --- LOCK SCREEN --- */
         #lockScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 9999;
@@ -235,10 +235,8 @@
         <div class="lock-container">
             <div class="lock-title">PROTOCOL 75</div>
             <div class="lock-sub">IDENTITY VERIFICATION</div>
-            
             <input type="email" class="login-input" id="emailInput" placeholder="USER ID (EMAIL)">
             <input type="password" class="login-input" id="passInput" placeholder="ACCESS KEY (PASSWORD)">
-            
             <div class="error-msg" id="loginError">ACCESS DENIED</div>
             <button class="btn-unlock" onclick="window.attemptLogin()">AUTHENTICATE</button>
         </div>
@@ -308,7 +306,6 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    // IMPORTED EMAIL LOGIN
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     // --- SOUND ENGINE ---
@@ -346,7 +343,7 @@
     const mainDocRef = doc(db, "tracker", "user_data");
     const historyColRef = collection(db, "tracker_history");
 
-    // --- LOGIN LOGIC (NEW) ---
+    // --- LOGIN LOGIC ---
     window.attemptLogin = () => {
         window.playClick();
         const email = document.getElementById('emailInput').value;
@@ -358,24 +355,20 @@
 
         signInWithEmailAndPassword(auth, email, pass)
             .then((userCredential) => {
-                // Success
                 document.getElementById('lockScreen').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('lockScreen').style.display = 'none';
                 }, 500);
-                loadMainData(); // Load data ONLY after login
+                loadMainData();
             })
             .catch((error) => {
-                // Fail
                 errEl.style.opacity = '1';
                 errEl.innerText = "ACCESS DENIED";
-                console.error(error);
                 document.getElementById('statusMsg').innerText = "System Locked";
                 setTimeout(() => { errEl.style.opacity = '0'; }, 3000);
             });
     }
 
-    // Allow Enter key on password field
     document.getElementById('passInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') window.attemptLogin();
     });
@@ -443,9 +436,6 @@
         document.getElementById('mainView').style.display='flex'; 
     };
 
-    // REMOVED ANONYMOUS LOGIN - NOW WAITS FOR EMAIL LOGIN
-    // signInAnonymously(auth)... 
-
     async function loadMainData() {
         try {
             const docSnap = await getDoc(mainDocRef);
@@ -489,7 +479,7 @@
 
     async function saveData(newState) {
         state = newState; 
-        document.getElementById('statusMsg').innerText = "Syncing...";
+        document.getElementById('statusMsg').innerText = "Saving...";
         try { await setDoc(mainDocRef, newState); document.getElementById('statusMsg').innerText = "System Synced"; }
         catch (e) { document.getElementById('statusMsg').innerText = "Save Failed"; }
     }
@@ -529,7 +519,12 @@
             
             box.onclick = () => {
                 window.playClick();
-                if (i === state.day) {
+                // FIX: Strictly prevent ghost data from showing up for future days
+                if (i > state.day) {
+                    // Future day -> Force "No Data" view
+                    openJournal(i, null);
+                } else if (i === state.day) {
+                    // Current day -> Force Live View
                     openJournal(i, {
                         date: state.lastDate,
                         tasks: state.tasks,
@@ -537,6 +532,7 @@
                         perfect: false
                     });
                 } else {
+                    // Past day -> Show History
                     openJournal(i, dayLog);
                 }
             };
@@ -549,9 +545,14 @@
         const content = document.getElementById('journalContent');
         content.innerHTML = "";
 
+        // NEW: Specific handling for Future Days
         if (!logData) {
-            document.getElementById('journalTitle').innerText = "No Data";
-            content.innerHTML = `<div style="text-align:center; color:var(--text-secondary); margin-top:20px;">No logs found for this day.</div>`;
+            document.getElementById('journalTitle').innerText = "FUTURE PROTOCOL";
+            content.innerHTML = `
+                <div style="text-align:center; color:var(--text-secondary); margin-top:20px; font-family:'Courier New';">
+                    [LOCKED]<br><br>
+                    This day has not been reached yet.
+                </div>`;
         } else {
             document.getElementById('journalTitle').innerText = logData.date;
             
