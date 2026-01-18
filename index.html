@@ -29,15 +29,13 @@
             box-sizing: border-box; position: relative;
         }
 
-        /* --- LOCK SCREEN (NEW) --- */
+        /* --- LOCK SCREEN --- */
         #lockScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .lock-container {
-            text-align: center; width: 90%; max-width: 300px;
-        }
+        .lock-container { text-align: center; width: 90%; max-width: 300px; }
         .lock-title { font-size: 2rem; color: var(--text-primary); margin-bottom: 10px; font-weight: bold; letter-spacing: 2px;}
         .lock-sub { color: var(--text-secondary); font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 30px; text-transform: uppercase; }
         
@@ -69,7 +67,7 @@
             border: 1px solid rgba(255,255,255,0.1);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.3s ease;
-            z-index: 50;
+            z-index: 999;
         }
         .nav-btn svg { width: 20px; height: 20px; fill: var(--text-secondary); transition: fill 0.3s; }
         .nav-btn:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-dim); transform: scale(1.05); }
@@ -310,8 +308,7 @@
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     // --- LOCK SCREEN LOGIC ---
-    // You can change "7575" to any PIN you want
-    const USER_PIN = "7575"; 
+    const USER_PIN = "6110"; 
     
     window.checkPin = function() {
         window.playClick();
@@ -331,7 +328,6 @@
         }
     };
     
-    // Allow Enter key for PIN
     document.getElementById('pinInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') window.checkPin();
     });
@@ -375,7 +371,7 @@
         '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>',
         '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>',
         '<path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>',
-        '<path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 5.6 1 6.5v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>',
+        '<path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 5.6 1 6.5v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>',
         '<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>',
         '<path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>'
     ];
@@ -513,13 +509,24 @@
             box.className = 'archive-box';
             box.innerText = i;
             
+            // Highlight logic
             const dayLog = historyData.find(d => d.dayNum === i);
             if (dayLog && dayLog.perfect) box.classList.add('filled');
             if (i === state.day) box.classList.add('current');
             
             box.onclick = () => {
                 window.playClick();
-                openJournal(i, dayLog);
+                // FIX: If it is CURRENT DAY, use LIVE STATE instead of history
+                if (i === state.day) {
+                    openJournal(i, {
+                        date: state.lastDate,
+                        tasks: state.tasks,
+                        reflections: state.reflections,
+                        perfect: false // Current day is incomplete by definition until tomorrow
+                    });
+                } else {
+                    openJournal(i, dayLog);
+                }
             };
             grid.appendChild(box);
         }
@@ -542,7 +549,14 @@
             statusDiv.style.fontSize = '0.8rem';
             statusDiv.style.letterSpacing = '2px';
             statusDiv.style.color = logData.perfect ? 'var(--accent)' : 'var(--fail)';
-            statusDiv.innerText = logData.perfect ? "STATUS: COMPLETE" : "STATUS: INCOMPLETE";
+            
+            // Special status for Current Day
+            if (dayNum === state.day) {
+                 statusDiv.innerText = "STATUS: IN PROGRESS";
+                 statusDiv.style.color = "var(--text-secondary)";
+            } else {
+                 statusDiv.innerText = logData.perfect ? "STATUS: COMPLETE" : "STATUS: INCOMPLETE";
+            }
             content.appendChild(statusDiv);
 
             taskNames.forEach((name, index) => {
