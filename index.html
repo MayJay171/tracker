@@ -29,6 +29,37 @@
             box-sizing: border-box; position: relative;
         }
 
+        /* --- LOCK SCREEN (NEW) --- */
+        #lockScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .lock-container {
+            text-align: center; width: 90%; max-width: 300px;
+        }
+        .lock-title { font-size: 2rem; color: var(--text-primary); margin-bottom: 10px; font-weight: bold; letter-spacing: 2px;}
+        .lock-sub { color: var(--text-secondary); font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 30px; text-transform: uppercase; }
+        
+        .pin-input {
+            background: transparent; border: none; border-bottom: 2px solid var(--text-secondary);
+            color: var(--accent); font-family: 'Courier New', monospace; font-size: 2rem;
+            text-align: center; width: 150px; outline: none; letter-spacing: 10px;
+            transition: border-color 0.3s;
+        }
+        .pin-input:focus { border-color: var(--accent); }
+        .pin-input::placeholder { color: rgba(255,255,255,0.1); letter-spacing: 2px; font-size: 1rem;}
+
+        .btn-unlock {
+            margin-top: 30px; padding: 12px 30px;
+            background: var(--accent-dim); border: 1px solid var(--accent);
+            color: var(--accent); font-weight: bold; border-radius: 4px;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+            transition: all 0.3s;
+        }
+        .btn-unlock:hover { background: var(--accent); color: var(--bg-color); box-shadow: 0 0 20px var(--accent); }
+        .error-msg { color: var(--fail); margin-top: 20px; font-size: 0.8rem; height: 1rem; opacity: 0; transition: opacity 0.3s;}
+
         /* --- BUTTONS --- */
         .nav-btn {
             position: absolute; top: 25px;
@@ -38,7 +69,7 @@
             border: 1px solid rgba(255,255,255,0.1);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.3s ease;
-            z-index: 999;
+            z-index: 50;
         }
         .nav-btn svg { width: 20px; height: 20px; fill: var(--text-secondary); transition: fill 0.3s; }
         .nav-btn:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-dim); transform: scale(1.05); }
@@ -81,7 +112,6 @@
             font-weight: 500;
         }
         
-        /* Review List Items */
         .review-item {
             display: flex; align-items: flex-start; gap: 15px;
             padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -203,6 +233,16 @@
 </head>
 <body>
 
+    <div id="lockScreen">
+        <div class="lock-container">
+            <div class="lock-title">PROTOCOL 75</div>
+            <div class="lock-sub">SECURITY CLEARANCE REQUIRED</div>
+            <input type="password" class="pin-input" id="pinInput" placeholder="----" maxlength="4">
+            <div class="error-msg" id="pinError">ACCESS DENIED</div>
+            <button class="btn-unlock" onclick="checkPin()">AUTHENTICATE</button>
+        </div>
+    </div>
+
     <div class="nav-btn btn-left" onclick="window.playClick(); window.location.reload()">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 7h2v6h-2zm0 8h2v2h-2z"/></svg>
     </div>
@@ -219,7 +259,6 @@
                 <div class="toggle-switch active" id="soundToggle" onclick="window.toggleSound()"></div>
             </div>
             <div class="status-text" id="failsDisplay">Current Strikes: 0/2</div>
-            
             <button class="btn-reset" onclick="window.manualReset()">HARD RESET (DAY 1)</button>
         </div>
     </div>
@@ -229,8 +268,7 @@
             <div class="modal-close-x" onclick="window.closeJournal()">×</div>
             <div class="review-sub" id="journalSub">DAY -- REVIEW</div>
             <div class="review-title" id="journalTitle">Date String</div>
-            <div id="journalContent">
-                </div>
+            <div id="journalContent"></div>
         </div>
     </div>
 
@@ -240,8 +278,7 @@
             <h1 class="main-title" id="dayDisplay">Day --</h1>
         </div>
 
-        <ul class="task-list" id="taskList">
-            </ul>
+        <ul class="task-list" id="taskList"></ul>
         
         <div class="status-text" id="statusMsg">System Sync...</div>
         <button class="btn-link" id="toHistoryBtn">View Archives</button>
@@ -272,7 +309,34 @@
     import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // --- SOUND ENGINE (Attached to Window for global access) ---
+    // --- LOCK SCREEN LOGIC ---
+    // You can change "7575" to any PIN you want
+    const USER_PIN = "7575"; 
+    
+    window.checkPin = function() {
+        window.playClick();
+        const input = document.getElementById('pinInput');
+        const error = document.getElementById('pinError');
+        
+        if(input.value === USER_PIN) {
+            document.getElementById('lockScreen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('lockScreen').style.display = 'none';
+            }, 500);
+        } else {
+            error.style.opacity = '1';
+            input.value = "";
+            input.focus();
+            setTimeout(() => { error.style.opacity = '0'; }, 2000);
+        }
+    };
+    
+    // Allow Enter key for PIN
+    document.getElementById('pinInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') window.checkPin();
+    });
+
+    // --- SOUND ENGINE ---
     let soundEnabled = true;
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     
@@ -326,7 +390,6 @@
 
     let state = { day: 1, lastDate: new Date().toDateString(), tasks: Array(6).fill(false), reflections: Array(6).fill(""), consecutiveFails: 0 };
 
-    // --- GLOBAL UI HELPERS (Attached to window) ---
     window.toggleSettings = () => {
         window.playClick();
         const el = document.getElementById('settingsModal');
@@ -343,27 +406,22 @@
         document.getElementById('journalModal').style.display = 'none';
     }
     
-    // NEW RESET FUNCTION (FIXED DATE LOGIC)
     window.manualReset = () => {
         window.playClick();
         if(confirm("⚠️ WARNING: This will reset your progress to DAY 1. Are you sure?")) {
-            // FIX: Set lastDate to TODAY immediately
             const today = new Date().toDateString();
-            
             state.day = 1;
-            state.lastDate = today; // <--- This ensures Day 1 matches Today's date
+            state.lastDate = today;
             state.tasks.fill(false);
             state.reflections.fill("");
             state.consecutiveFails = 0;
-            
             saveData(state);
             alert("System Reset to Day 1 (" + today + ").");
             window.toggleSettings();
-            renderMain(); // Refresh UI to show correct date context
+            renderMain();
         }
     }
 
-    // --- LOGIC ---
     document.getElementById('toHistoryBtn').onclick = () => { 
         window.playClick(); 
         document.getElementById('mainView').style.display='none'; 
@@ -396,8 +454,6 @@
         }
         
         const allDone = cloudState.tasks.every(t => t);
-        
-        // SAVE HISTORY BEFORE RESETTING
         await archiveDay(cloudState, allDone); 
 
         const diff = Math.ceil(Math.abs(new Date(today) - new Date(cloudState.lastDate)) / (86400000));
@@ -457,7 +513,6 @@
             box.className = 'archive-box';
             box.innerText = i;
             
-            // Find data for this day
             const dayLog = historyData.find(d => d.dayNum === i);
             if (dayLog && dayLog.perfect) box.classList.add('filled');
             if (i === state.day) box.classList.add('current');
