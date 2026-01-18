@@ -38,7 +38,7 @@
             border: 1px solid rgba(255,255,255,0.1);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.3s ease;
-            z-index: 50;
+            z-index: 999; /* Increased Z-Index to ensure clickability */
         }
         .nav-btn svg { width: 20px; height: 20px; fill: var(--text-secondary); transition: fill 0.3s; }
         .nav-btn:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-dim); transform: scale(1.05); }
@@ -55,7 +55,6 @@
             z-index: 200; align-items: center; justify-content: center;
         }
         
-        /* Day Review Card Style */
         .modal-box {
             background: #0a0f18; width: 90%; max-width: 450px;
             padding: 40px 30px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);
@@ -204,30 +203,30 @@
 </head>
 <body>
 
-    <div class="nav-btn btn-left" onclick="playClick(); window.location.reload()">
+    <div class="nav-btn btn-left" onclick="window.playClick(); window.location.reload()">
         <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 7h2v6h-2zm0 8h2v2h-2z"/></svg>
     </div>
 
-    <div class="nav-btn btn-right" onclick="toggleSettings()">
+    <div class="nav-btn btn-right" onclick="window.toggleSettings()">
         <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .43-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.08-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
     </div>
 
-    <div class="modal-overlay" id="settingsModal" onclick="if(event.target===this) toggleSettings()">
+    <div class="modal-overlay" id="settingsModal" onclick="if(event.target===this) window.toggleSettings()">
         <div class="modal-box">
             <div class="review-sub" style="margin-bottom:20px; font-size:1rem; color:var(--accent);">SYSTEM CONFIG</div>
             <div class="setting-row">
                 <span>Audio Feedback</span>
-                <div class="toggle-switch active" id="soundToggle" onclick="toggleSound()"></div>
+                <div class="toggle-switch active" id="soundToggle" onclick="window.toggleSound()"></div>
             </div>
             <div class="status-text" id="failsDisplay">Current Strikes: 0/2</div>
             
-            <button class="btn-reset" onclick="manualReset()">HARD RESET (DAY 1)</button>
+            <button class="btn-reset" onclick="window.manualReset()">HARD RESET (DAY 1)</button>
         </div>
     </div>
 
-    <div class="modal-overlay" id="journalModal" onclick="if(event.target===this) closeJournal()">
+    <div class="modal-overlay" id="journalModal" onclick="if(event.target===this) window.closeJournal()">
         <div class="modal-box">
-            <div class="modal-close-x" onclick="closeJournal()">×</div>
+            <div class="modal-close-x" onclick="window.closeJournal()">×</div>
             <div class="review-sub" id="journalSub">DAY -- REVIEW</div>
             <div class="review-title" id="journalTitle">Date String</div>
             <div id="journalContent">
@@ -273,10 +272,11 @@
     import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
     import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-    // --- SOUND ENGINE ---
+    // --- SOUND ENGINE (Attached to Window for global access) ---
     let soundEnabled = true;
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playClick() {
+    
+    window.playClick = function() {
         if(!soundEnabled) return;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -289,7 +289,7 @@
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
         osc.start();
         osc.stop(audioCtx.currentTime + 0.05);
-    }
+    };
 
     // --- FIREBASE CONFIG ---
     const firebaseConfig = {
@@ -326,9 +326,9 @@
 
     let state = { day: 1, lastDate: new Date().toDateString(), tasks: Array(6).fill(false), reflections: Array(6).fill(""), consecutiveFails: 0 };
 
-    // --- UI HELPERS ---
+    // --- GLOBAL UI HELPERS (Attached to window) ---
     window.toggleSettings = () => {
-        playClick();
+        window.playClick();
         const el = document.getElementById('settingsModal');
         el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
         document.getElementById('failsDisplay').innerText = `Strikes: ${state.consecutiveFails}/2`;
@@ -336,16 +336,16 @@
     window.toggleSound = () => {
         soundEnabled = !soundEnabled;
         document.getElementById('soundToggle').classList.toggle('active');
-        playClick();
+        window.playClick();
     }
     window.closeJournal = () => {
-        playClick();
+        window.playClick();
         document.getElementById('journalModal').style.display = 'none';
     }
     
     // NEW RESET FUNCTION
     window.manualReset = () => {
-        playClick();
+        window.playClick();
         if(confirm("⚠️ WARNING: This will reset your progress to DAY 1. Are you sure?")) {
             state.day = 1;
             state.tasks.fill(false);
@@ -353,19 +353,19 @@
             state.consecutiveFails = 0;
             saveData(state);
             alert("System Reset to Day 1.");
-            toggleSettings();
+            window.toggleSettings();
         }
     }
 
     // --- LOGIC ---
     document.getElementById('toHistoryBtn').onclick = () => { 
-        playClick(); 
+        window.playClick(); 
         document.getElementById('mainView').style.display='none'; 
         document.getElementById('historyView').style.display='flex'; 
         renderArchiveGrid(); 
     };
     document.getElementById('toMainBtn').onclick = () => { 
-        playClick(); 
+        window.playClick(); 
         document.getElementById('historyView').style.display='none'; 
         document.getElementById('mainView').style.display='flex'; 
     };
@@ -458,7 +458,7 @@
             if (i === state.day) box.classList.add('current');
             
             box.onclick = () => {
-                playClick();
+                window.playClick();
                 openJournal(i, dayLog);
             };
             grid.appendChild(box);
@@ -536,7 +536,7 @@
             `;
 
             header.onclick = (e) => {
-                playClick();
+                window.playClick();
                 if(e.target.id === `check-${index}` || e.target.classList.contains('check-circle')) {
                      state.tasks[index] = !state.tasks[index];
                      saveData(state);
