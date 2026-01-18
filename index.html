@@ -29,34 +29,34 @@
             box-sizing: border-box; position: relative;
         }
 
-        /* --- LOCK SCREEN --- */
+        /* --- LOCK SCREEN (EMAIL/PASS) --- */
         #lockScreen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--bg-color); z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .lock-container { text-align: center; width: 90%; max-width: 300px; }
+        .lock-container { text-align: center; width: 90%; max-width: 320px; }
         .lock-title { font-size: 2rem; color: var(--text-primary); margin-bottom: 10px; font-weight: bold; letter-spacing: 2px;}
         .lock-sub { color: var(--text-secondary); font-size: 0.8rem; letter-spacing: 4px; margin-bottom: 30px; text-transform: uppercase; }
         
-        .pin-input {
-            background: transparent; border: none; border-bottom: 2px solid var(--text-secondary);
-            color: var(--accent); font-family: 'Courier New', monospace; font-size: 2rem;
-            text-align: center; width: 150px; outline: none; letter-spacing: 10px;
+        .login-input {
+            background: transparent; border: none; border-bottom: 1px solid var(--text-secondary);
+            color: var(--text-primary); font-family: 'Courier New', monospace; font-size: 1rem;
+            text-align: center; width: 100%; outline: none; margin-bottom: 20px; padding: 10px;
             transition: border-color 0.3s;
         }
-        .pin-input:focus { border-color: var(--accent); }
-        .pin-input::placeholder { color: rgba(255,255,255,0.1); letter-spacing: 2px; font-size: 1rem;}
+        .login-input:focus { border-color: var(--accent); }
+        .login-input::placeholder { color: rgba(255,255,255,0.2); letter-spacing: 1px; font-size: 0.8rem;}
 
         .btn-unlock {
-            margin-top: 30px; padding: 12px 30px;
+            margin-top: 20px; padding: 12px 30px;
             background: var(--accent-dim); border: 1px solid var(--accent);
             color: var(--accent); font-weight: bold; border-radius: 4px;
             cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
-            transition: all 0.3s;
+            transition: all 0.3s; width: 100%;
         }
         .btn-unlock:hover { background: var(--accent); color: var(--bg-color); box-shadow: 0 0 20px var(--accent); }
-        .error-msg { color: var(--fail); margin-top: 20px; font-size: 0.8rem; height: 1rem; opacity: 0; transition: opacity 0.3s;}
+        .error-msg { color: var(--fail); margin-top: 20px; font-size: 0.8rem; min-height: 1rem; opacity: 0; transition: opacity 0.3s;}
 
         /* --- BUTTONS --- */
         .nav-btn {
@@ -234,10 +234,13 @@
     <div id="lockScreen">
         <div class="lock-container">
             <div class="lock-title">PROTOCOL 75</div>
-            <div class="lock-sub">SECURITY CLEARANCE REQUIRED</div>
-            <input type="password" class="pin-input" id="pinInput" placeholder="----" maxlength="4">
-            <div class="error-msg" id="pinError">ACCESS DENIED</div>
-            <button class="btn-unlock" onclick="checkPin()">AUTHENTICATE</button>
+            <div class="lock-sub">IDENTITY VERIFICATION</div>
+            
+            <input type="email" class="login-input" id="emailInput" placeholder="USER ID (EMAIL)">
+            <input type="password" class="login-input" id="passInput" placeholder="ACCESS KEY (PASSWORD)">
+            
+            <div class="error-msg" id="loginError">ACCESS DENIED</div>
+            <button class="btn-unlock" onclick="window.attemptLogin()">AUTHENTICATE</button>
         </div>
     </div>
 
@@ -278,7 +281,7 @@
 
         <ul class="task-list" id="taskList"></ul>
         
-        <div class="status-text" id="statusMsg">System Sync...</div>
+        <div class="status-text" id="statusMsg">System Locked</div>
         <button class="btn-link" id="toHistoryBtn">View Archives</button>
     </div>
 
@@ -305,32 +308,8 @@
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-
-    // --- LOCK SCREEN LOGIC ---
-    const USER_PIN = "6110"; 
-    
-    window.checkPin = function() {
-        window.playClick();
-        const input = document.getElementById('pinInput');
-        const error = document.getElementById('pinError');
-        
-        if(input.value === USER_PIN) {
-            document.getElementById('lockScreen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('lockScreen').style.display = 'none';
-            }, 500);
-        } else {
-            error.style.opacity = '1';
-            input.value = "";
-            input.focus();
-            setTimeout(() => { error.style.opacity = '0'; }, 2000);
-        }
-    };
-    
-    document.getElementById('pinInput').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') window.checkPin();
-    });
+    // IMPORTED EMAIL LOGIN
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
     // --- SOUND ENGINE ---
     let soundEnabled = true;
@@ -367,11 +346,45 @@
     const mainDocRef = doc(db, "tracker", "user_data");
     const historyColRef = collection(db, "tracker_history");
 
+    // --- LOGIN LOGIC (NEW) ---
+    window.attemptLogin = () => {
+        window.playClick();
+        const email = document.getElementById('emailInput').value;
+        const pass = document.getElementById('passInput').value;
+        const errEl = document.getElementById('loginError');
+
+        errEl.style.opacity = '0';
+        document.getElementById('statusMsg').innerText = "Verifying...";
+
+        signInWithEmailAndPassword(auth, email, pass)
+            .then((userCredential) => {
+                // Success
+                document.getElementById('lockScreen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('lockScreen').style.display = 'none';
+                }, 500);
+                loadMainData(); // Load data ONLY after login
+            })
+            .catch((error) => {
+                // Fail
+                errEl.style.opacity = '1';
+                errEl.innerText = "ACCESS DENIED";
+                console.error(error);
+                document.getElementById('statusMsg').innerText = "System Locked";
+                setTimeout(() => { errEl.style.opacity = '0'; }, 3000);
+            });
+    }
+
+    // Allow Enter key on password field
+    document.getElementById('passInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') window.attemptLogin();
+    });
+
     const icons = [
         '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>',
         '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>',
         '<path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>',
-        '<path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 5.6 1 6.5v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>',
+        '<path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 5.6 1 6.5v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>',
         '<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>',
         '<path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>'
     ];
@@ -430,7 +443,8 @@
         document.getElementById('mainView').style.display='flex'; 
     };
 
-    signInAnonymously(auth).then(() => loadMainData()).catch(e => console.error(e));
+    // REMOVED ANONYMOUS LOGIN - NOW WAITS FOR EMAIL LOGIN
+    // signInAnonymously(auth)... 
 
     async function loadMainData() {
         try {
@@ -475,7 +489,7 @@
 
     async function saveData(newState) {
         state = newState; 
-        document.getElementById('statusMsg').innerText = "Saving...";
+        document.getElementById('statusMsg').innerText = "Syncing...";
         try { await setDoc(mainDocRef, newState); document.getElementById('statusMsg').innerText = "System Synced"; }
         catch (e) { document.getElementById('statusMsg').innerText = "Save Failed"; }
     }
@@ -509,20 +523,18 @@
             box.className = 'archive-box';
             box.innerText = i;
             
-            // Highlight logic
             const dayLog = historyData.find(d => d.dayNum === i);
             if (dayLog && dayLog.perfect) box.classList.add('filled');
             if (i === state.day) box.classList.add('current');
             
             box.onclick = () => {
                 window.playClick();
-                // FIX: If it is CURRENT DAY, use LIVE STATE instead of history
                 if (i === state.day) {
                     openJournal(i, {
                         date: state.lastDate,
                         tasks: state.tasks,
                         reflections: state.reflections,
-                        perfect: false // Current day is incomplete by definition until tomorrow
+                        perfect: false
                     });
                 } else {
                     openJournal(i, dayLog);
@@ -548,14 +560,13 @@
             statusDiv.style.marginBottom = '20px';
             statusDiv.style.fontSize = '0.8rem';
             statusDiv.style.letterSpacing = '2px';
-            statusDiv.style.color = logData.perfect ? 'var(--accent)' : 'var(--fail)';
             
-            // Special status for Current Day
             if (dayNum === state.day) {
                  statusDiv.innerText = "STATUS: IN PROGRESS";
                  statusDiv.style.color = "var(--text-secondary)";
             } else {
                  statusDiv.innerText = logData.perfect ? "STATUS: COMPLETE" : "STATUS: INCOMPLETE";
+                 statusDiv.style.color = logData.perfect ? 'var(--accent)' : 'var(--fail)';
             }
             content.appendChild(statusDiv);
 
