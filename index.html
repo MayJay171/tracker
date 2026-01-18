@@ -38,7 +38,7 @@
             border: 1px solid rgba(255,255,255,0.1);
             display: flex; align-items: center; justify-content: center;
             cursor: pointer; transition: all 0.3s ease;
-            z-index: 999; /* Increased Z-Index to ensure clickability */
+            z-index: 999;
         }
         .nav-btn svg { width: 20px; height: 20px; fill: var(--text-secondary); transition: fill 0.3s; }
         .nav-btn:hover { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-dim); transform: scale(1.05); }
@@ -343,17 +343,23 @@
         document.getElementById('journalModal').style.display = 'none';
     }
     
-    // NEW RESET FUNCTION
+    // NEW RESET FUNCTION (FIXED DATE LOGIC)
     window.manualReset = () => {
         window.playClick();
         if(confirm("⚠️ WARNING: This will reset your progress to DAY 1. Are you sure?")) {
+            // FIX: Set lastDate to TODAY immediately
+            const today = new Date().toDateString();
+            
             state.day = 1;
+            state.lastDate = today; // <--- This ensures Day 1 matches Today's date
             state.tasks.fill(false);
             state.reflections.fill("");
             state.consecutiveFails = 0;
+            
             saveData(state);
-            alert("System Reset to Day 1.");
+            alert("System Reset to Day 1 (" + today + ").");
             window.toggleSettings();
+            renderMain(); // Refresh UI to show correct date context
         }
     }
 
@@ -424,14 +430,13 @@
 
     async function archiveDay(oldState, wasPerfect) {
         try {
-            // Using a simpler doc ID to allow multiple "Day 1"s if needed, or stick to DateString
             const historyDocRef = doc(historyColRef, oldState.lastDate);
             await setDoc(historyDocRef, { 
                 dayNum: oldState.day, 
                 date: oldState.lastDate, 
                 perfect: wasPerfect,
-                tasks: oldState.tasks, // Saving Checkmarks
-                reflections: oldState.reflections // Saving Notes
+                tasks: oldState.tasks, 
+                reflections: oldState.reflections 
             });
         } catch (e) { console.error(e); }
     }
@@ -476,7 +481,6 @@
         } else {
             document.getElementById('journalTitle').innerText = logData.date;
             
-            // Add Status Indicator
             const statusDiv = document.createElement('div');
             statusDiv.style.textAlign = 'center';
             statusDiv.style.marginBottom = '20px';
@@ -487,7 +491,6 @@
             content.appendChild(statusDiv);
 
             taskNames.forEach((name, index) => {
-                // Safely access data, defaulting to false/empty if missing
                 const done = (logData.tasks && logData.tasks[index] === true); 
                 const note = (logData.reflections && logData.reflections[index]) ? logData.reflections[index] : "";
                 
