@@ -203,6 +203,10 @@
             transition: all 0.3s ease; cursor: pointer;
         }
         .archive-box.filled { background: var(--accent); color: var(--bg-color); border-color: var(--accent); font-weight: 900; box-shadow: 0 0 15px var(--accent-dim); }
+        
+        /* NEW: Failed days now visible as RED */
+        .archive-box.failed { border-color: var(--fail); color: var(--fail); background: rgba(255, 85, 85, 0.1); font-weight: bold; }
+        
         .archive-box.current { border-color: var(--text-secondary); color: var(--text-primary); border-width: 2px; }
 
         .btn-link { 
@@ -247,7 +251,7 @@
     </div>
 
     <div class="nav-btn btn-right" onclick="window.toggleSettings()">
-        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L3.16 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .43-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.08-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.08-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
     </div>
 
     <div class="modal-overlay" id="settingsModal" onclick="if(event.target===this) window.toggleSettings()">
@@ -378,7 +382,6 @@
         '<path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>',
         '<path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>',
         '<path d="M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 5.6 1 6.5v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1zm0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5v11.5z"/>',
-        '<path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>',
         '<path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>'
     ];
     const taskNames = [
@@ -454,6 +457,8 @@
         }
         
         const allDone = cloudState.tasks.every(t => t);
+        
+        // BUG FIX: Archive the day BEFORE resetting, ensuring data persists.
         await archiveDay(cloudState, allDone); 
 
         const diff = Math.ceil(Math.abs(new Date(today) - new Date(cloudState.lastDate)) / (86400000));
@@ -487,14 +492,20 @@
     async function archiveDay(oldState, wasPerfect) {
         try {
             const historyDocRef = doc(historyColRef, oldState.lastDate);
+            
+            // BUG FIX: Ensure all data is present before saving
+            // If data is missing (undefined), replace it with defaults so save doesn't fail
+            const safeTasks = oldState.tasks || Array(6).fill(false);
+            const safeReflections = oldState.reflections || Array(6).fill("");
+
             await setDoc(historyDocRef, { 
                 dayNum: oldState.day, 
                 date: oldState.lastDate, 
                 perfect: wasPerfect,
-                tasks: oldState.tasks, 
-                reflections: oldState.reflections 
+                tasks: safeTasks, 
+                reflections: safeReflections 
             });
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Archive Failed:", e); }
     }
 
     async function renderArchiveGrid() {
@@ -505,6 +516,10 @@
         try {
             const snap = await getDocs(historyColRef);
             snap.forEach(d => { historyData.push(d.data()); });
+            
+            // BUG FIX: Sort by date (newest first) to ensure we see the correct Day 1 if multiple exist
+            historyData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
         } catch(e) { console.log("History load error"); }
 
         grid.innerHTML = "";
@@ -513,18 +528,25 @@
             box.className = 'archive-box';
             box.innerText = i;
             
+            // Search for this day number in the sorted history
             const dayLog = historyData.find(d => d.dayNum === i);
-            if (dayLog && dayLog.perfect) box.classList.add('filled');
+            
+            if (dayLog) {
+                if(dayLog.perfect) box.classList.add('filled');
+                else box.classList.add('failed'); // Red for incomplete days
+            }
+            
             if (i === state.day) box.classList.add('current');
             
             box.onclick = () => {
                 window.playClick();
-                // FIX: Strictly prevent ghost data from showing up for future days
+                // Logic: 
+                // 1. If Future -> Lock
+                // 2. If Current -> Show Live State
+                // 3. If Past -> Show History Log
                 if (i > state.day) {
-                    // Future day -> Force "No Data" view
                     openJournal(i, null);
                 } else if (i === state.day) {
-                    // Current day -> Force Live View
                     openJournal(i, {
                         date: state.lastDate,
                         tasks: state.tasks,
@@ -532,7 +554,6 @@
                         perfect: false
                     });
                 } else {
-                    // Past day -> Show History
                     openJournal(i, dayLog);
                 }
             };
@@ -545,7 +566,6 @@
         const content = document.getElementById('journalContent');
         content.innerHTML = "";
 
-        // NEW: Specific handling for Future Days
         if (!logData) {
             document.getElementById('journalTitle').innerText = "FUTURE PROTOCOL";
             content.innerHTML = `
